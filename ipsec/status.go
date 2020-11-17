@@ -68,8 +68,8 @@ func queryStatus(ipSecConfiguration *Configuration, provider statusProvider) map
 				status:     extractStatus([]byte(out)),
 				bytesIn:    extractIntWithRegex(out, `([[0-9]+) bytes_i`),
 				bytesOut:   extractIntWithRegex(out, `([[0-9]+) bytes_o`),
-				packetsIn:  extractIntWithRegex(out, `bytes_i \(([[0-9]+) pkts`),
-				packetsOut: extractIntWithRegex(out, `bytes_o \(([[0-9]+) pkts`),
+				packetsIn:  extractIntWithRegex(out, `bytes_i \(([[0-9]+) pkt`),
+				packetsOut: extractIntWithRegex(out, `bytes_o \(([[0-9]+) pkt`),
 			}
 		}
 	}
@@ -97,14 +97,15 @@ func extractStatus(statusLine []byte) connectionStatus {
 
 func extractIntWithRegex(input string, regex string) int {
 	re := regexp.MustCompile(regex)
-	match := re.FindStringSubmatch(input)
-	if len(match) >= 2 {
-		i, err := strconv.Atoi(match[1])
-		if err != nil {
-			return 0
+	matches := re.FindAllStringSubmatch(input, -1)
+	sum := 0
+
+	for _, match := range matches {
+		valueInt, err := strconv.Atoi(match[1])
+		if err == nil {
+			sum += valueInt 
 		}
-		return i
 	}
 
-	return 0
+	return sum
 }
